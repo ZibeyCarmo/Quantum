@@ -1,5 +1,3 @@
---[[ By LeekG Community - https://discord.gg/ndxRJ3vR68]]
-
 local var30 = (function()
     local _ok, _b = pcall(function()
         return buffer.create(8)
