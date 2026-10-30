@@ -12,47 +12,6 @@
 ║  Executor : Synapse X / Solara / Wave / KRNL / Fluxus         ║
 ║  Match Guard ON — script tidak aktif di lobby                 ║
 ╚═══════════════════════════════════════════════════════════════╝
-
-  SARAN API UNTUK REAL EXECUTOR:
-  ─────────────────────────────────────────────────────────────
-  Synapse X   — paling stabil, support mousemoverel, Drawing,
-                syn.request, getgenv, hookfunction, decompile.
-                Terbaik untuk silent aim + hook exploit.
-
-  Solara      — second best, API nyaris sama dengan Synapse.
-                Support Drawing, mousemoverel, loadstring, syn.*
-
-  Wave        — ringan, support Drawing + mouse functions.
-                Cocok untuk ESP + aimbot.
-
-  KRNL        — gratis, support Drawing API, mousemoverel.
-                Kadang tidak support hookfunction advanced.
-
-  Fluxus      — gratis mobile/PC, support dasar Drawing.
-                Tidak semua syn.* tersedia.
-
-  API PENTING YANG DIPAKAI SCRIPT INI:
-  ─────────────────────────────────────────────────────────────
-  Drawing API          → render ESP box/text/line di layar
-                         (builtin executor, bukan Roblox)
-  mousemoverel(x,y)    → gerak mouse untuk smooth aimbot
-  Mouse.Hit = CFrame   → silent aim override hit position
-  hookfunction()       → intercept & redirect function calls
-                         (fake parry, auto parry hook)
-  getgenv()            → global env executor untuk share var
-  syn.request()        → HTTP request dari executor (Synapse)
-  game:HttpGet()       → HTTP request dari Roblox (loader)
-  loadstring()         → execute string sebagai Lua code
-  pcall(fn)            → protected call, catch error tanpa crash
-  task.spawn(fn)       → jalankan function di thread baru
-  task.delay(t,fn)     → delayed execution
-  RunService.RenderStepped → loop per-frame (60fps)
-  RunService.Heartbeat     → physics loop (juga per-frame)
-  UserInputService     → deteksi key/mouse input
-  Camera:WorldToViewportPoint() → kalkulasi posisi 3D → 2D
-  Animator:GetPlayingAnimationTracks() → deteksi animasi aktif
-  RemoteEvent:FireServer() → trigger server action
-  ─────────────────────────────────────────────────────────────
 ]]
 
 -- ════════════════════════════════════════════════════════════
@@ -296,7 +255,7 @@ local function flickAlpha()
 end
 
 local function drawBox(sp, sz, color, alpha)
-    local b = Drawing.new("Square")
+    local b = guiservice("Square")
     b.Size     = Vector2.new(sz, sz * 1.75)
     b.Position = sp - Vector2.new(sz / 2, sz * 0.875)
     b.Color    = color; b.Thickness = CFG.ESP_Thick
@@ -305,13 +264,13 @@ end
 
 local function drawTracer(sp, color, alpha)
     local center = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
-    local ln     = Drawing.new("Line")
+    local ln     = GuiService("Line")
     ln.From      = center; ln.To = sp; ln.Color = color
     ln.Thickness = CFG.ESP_Thick; ln.Transparency = alpha; ln.Visible = true
 end
 
 local function drawCircle(sp, sz, color, alpha)
-    local circ = Drawing.new("Circle")
+    local circ = GuiService("Circle")
     circ.Position    = sp; circ.Radius = sz / 2
     circ.Color       = color; circ.Thickness = CFG.ESP_Thick
     circ.Filled      = false; circ.Transparency = alpha; circ.Visible = true
@@ -327,7 +286,7 @@ local function drawCorners(sp, sz, color, alpha)
     }
     for _, c in pairs(corners) do
         for _, d in pairs(c[2]) do
-            local l = Drawing.new("Line")
+            local l = GuiService("Line")
             l.From        = c[1]
             l.To          = c[1] + Vector2.new(d[1], d[2])
             l.Color       = color; l.Thickness = CFG.ESP_Thick + 1
@@ -337,7 +296,7 @@ local function drawCorners(sp, sz, color, alpha)
 end
 
 local function drawLabel(sp, sz, label, dist, color, alpha)
-    local txt      = Drawing.new("Text")
+    local txt      = GuiService("Text")
     local distStr  = CFG.ESP_ShowDist and (" [" .. math.floor(dist) .. "m]") or ""
     txt.Text       = (CFG.ESP_ShowName and label or "") .. distStr
     txt.Position   = sp - Vector2.new(0, sz * 0.875 + 15)
@@ -362,7 +321,7 @@ local function Hologram(pos, color, label, dist)
     end
     if CFG.ESP_SnapLine then
         local center = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-        local snap   = Drawing.new("Line")
+        local snap   = GuiService("Line")
         snap.From    = center; snap.To = sp; snap.Color = color
         snap.Thickness = 0.5; snap.Transparency = alpha * 0.35; snap.Visible = true
     end
@@ -426,7 +385,8 @@ end
 
 -- ════════════════════════════════════════════════════════════
 -- [7] AIMBOT PISTOL + SILENT AIM
--- ════════════════════════════════════════════════════════════
+-- ════════════════════════════════════
+
 local function getBestTarget()
     if not isInMatch() then return nil end
     local center   = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
@@ -807,9 +767,9 @@ local function getGenDelay()
 end
 
 if CFG.AutoGen then
-    task.spawn(function()
-        while task.wait(0.1) do
-            if not isInMatch() then task.wait(1); continue end
+    task.spawn(function() end)
+        while task.wait(0.1) do 
+            if isInMatch() then
             local myHRP = getHRP()
             local gens  = {}
             for _, obj in pairs(workspace:GetDescendants()) do
@@ -837,7 +797,6 @@ if CFG.AutoGen then
                 end)
             end
         end
-    end)
 end
 
 -- ════════════════════════════════════════════════════════════
@@ -1033,10 +992,7 @@ RunService.RenderStepped:Connect(function(dt)
 end)
 
 -- ════════════════════════════════════════════════════════════
--- [20] FAKE PARRY GUI — toggle panel via key (tidak butuh GUI lib)
--- Fake parry GUI = notifikasi status di layar via Drawing text
--- ════════════════════════════════════════════════════════════
-local parryStatusText = Drawing.new("Text")
+local parryStatusText = GuiService("Text")
 parryStatusText.Visible  = false
 parryStatusText.Size     = 16
 parryStatusText.Outline  = true
