@@ -345,7 +345,7 @@ local function drawLabel(sp, sz, label, dist, color, alpha)
     txt.Transparency = alpha; txt.Visible = true; txt.Center = true
 end
 
-local function drawHolo(pos, color, label, dist)
+local function Hologram(pos, color, label, dist)
     local sp, vis, depth = W2S(pos)
     if not vis or depth < 0 then return end
     local sz    = math.clamp(500 / depth, 8, 280)
@@ -395,10 +395,10 @@ local function runESP()
                 local isK  = plr.Character:FindFirstChild("KillerTag") ~= nil
                 if d <= CFG.ESP_MaxDist then
                     if CFG.ESP_Killer and isK then
-                        drawHolo(hrp.Position, CFG.C_Killer, plr.Name, d)
+                        Hologram(hrp.Position, CFG.C_Killer, plr.Name, d)
                     end
                     if CFG.ESP_Survivor and not isK then
-                        drawHolo(hrp.Position, CFG.C_Surv, plr.Name, d)
+                        Hologram(hrp.Position, CFG.C_Surv, plr.Name, d)
                     end
                 end
             end
@@ -416,7 +416,7 @@ local function runESP()
                         or obj.Position
                     local d2 = myHRP and dist3(pos, myHRP.Position) or 0
                     if d2 <= CFG.ESP_MaxDist then
-                        drawHolo(pos, CFG[entry.col], entry.lb, d2)
+                        Hologram(pos, CFG[entry.col], entry.lb, d2)
                     end
                 end
             end
